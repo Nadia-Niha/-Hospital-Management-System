@@ -1,179 +1,220 @@
-# app.py
-from flask import Flask, render_template_string
+Hospital Management System
+📌 Problem Statement
 
-app = Flask(__name__)
+The Hospital Management System (HMS) is designed to streamline hospital operations, enhance patient care, and provide actionable insights to administrators. It manages patients, doctors, appointments, medical records, notifications, and administrative analytics.
 
-# Mock Data
-patients = [
-    {"name": "John Doe", "id": "P001", "history": ["01 Sep 2025: Blood Test", "15 Aug 2025: Consultation"]},
-    {"name": "Mary Smith", "id": "P002", "history": ["20 Sep 2025: MRI Scan"]}
-]
+Objectives:
 
-appointments = [
-    {"patient": "John Doe", "doctor": "Dr. Smith", "datetime": "26 Oct 2025 10:00 AM", "type": "Check-up"},
-    {"patient": "Mary Smith", "doctor": "Dr. Lee", "datetime": "28 Oct 2025 02:00 PM", "type": "Consultation"}
-]
+Secure patient registration and login
 
-admin_dashboard = {
-    "total_patients": len(patients),
-    "total_appointments": len(appointments),
-    "total_revenue": "$45,230"
-}
+Appointment booking, management, and cancellation
 
-available_slots = {
-    "Mon 26 Oct": "09:00-12:00",
-    "Tue 27 Oct": "10:00-02:00"
-}
+Doctor access to patient records with real-time updates
 
-notifications = [
-    "26 Oct 2025 10:00 AM: John Doe booked an appointment",
-    "28 Oct 2025 02:00 PM: Mary Smith cancelled an appointment"
-]
+Administrative dashboards and performance reporting
 
-# HTML Template
-template = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Hospital Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { padding: 20px; background-color: #f8f9fa; }
-        .card { margin-bottom: 20px; }
-        .section-title { margin-top: 30px; margin-bottom: 15px; }
-        .scroll-table { max-height: 200px; overflow-y: auto; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center mb-4">🏥 Hospital Management System</h1>
+Notifications for appointments and system alerts
 
-        <!-- Admin Dashboard -->
-        <h3 class="section-title">Admin Analytics Dashboard</h3>
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card text-bg-primary">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Patients</h5>
-                        <p class="card-text fs-3">{{ admin.total_patients }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-bg-success">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Appointments</h5>
-                        <p class="card-text fs-3">{{ admin.total_appointments }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-bg-warning">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Revenue</h5>
-                        <p class="card-text fs-3">{{ admin.total_revenue }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+Role-based access control and activity monitoring
 
-        <!-- Patient Portal -->
-        <h3 class="section-title">🧑‍⚕️ Patient Portal</h3>
-        <div class="card">
-            <div class="card-body">
-                <h5>Upcoming Appointments</h5>
-                <ul>
-                    {% for a in appointments %}
-                        <li>{{ a.doctor }} - {{ a.datetime }}</li>
-                    {% endfor %}
-                </ul>
-                <h5>Medical History</h5>
-                {% for p in patients %}
-                    <strong>{{ p.name }}</strong>
-                    <ul>
-                        {% for h in p.history %}
-                            <li>{{ h }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endfor %}
-                <h5>Notifications</h5>
-                <ul>
-                    {% for n in notifications %}
-                        <li>{{ n }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+📝 User Story Planning
+Task	User Story	Acceptance Tests
+B-01	Admin dashboard with analytics on hospital performance	Total patients, appointments, revenue; real-time updates; filterable reports
+B-02	Patient registration & secure login	Form validation, correct credential login, limit invalid attempts
+B-03	Book/cancel appointments online	Shows available slots, prevents double booking, updates doctor schedule
+A-04	Doctor view daily appointments	Sorted by time, auto-updates on booking changes
+A-05	Doctor access/update medical history	Edits saved instantly, changes logged
+A-06	Admin manage roles & permissions	Assign/remove roles, unauthorized actions blocked
+A-07	Patient personal & medical data storage	Encrypted, authorized access only
+B-08	Appointment details storage & retrieval	Instant loading, past appointments viewable
+A-09	Doctor search patient records	Filter by name/ID, case-insensitive
+A-10	Real-time updates for medical records	Visible instantly, tracked changes
+B-11	Admin generate reports	Appointment stats, revenue, active patients; PDF/Excel export
+B-12	Patient view medical history	Chronologically sorted, read-only
+B-13	Appointment reminders	Email/SMS, 24 hours prior, toggle on/off
+A-14	Doctor receives notifications	Instant, includes patient name & time
+A-15	Admin monitor system logs	Logs with user ID, action, timestamp; admin-only access
+🏗️ Project Features
+Patient Module
 
-        <!-- Doctor Dashboard -->
-        <h3 class="section-title">🩺 Doctor Dashboard</h3>
-        <div class="card">
-            <div class="card-body scroll-table">
-                <h5>Daily Appointments</h5>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Patient Name</th>
-                            <th>Time</th>
-                            <th>Appointment Type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for a in appointments %}
-                        <tr>
-                            <td>{{ a.patient }}</td>
-                            <td>{{ a.datetime.split(' ')[-2] + ' ' + a.datetime.split(' ')[-1] }}</td>
-                            <td>{{ a.type }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+Registration & login
 
-        <!-- Appointment Management -->
-        <h3 class="section-title">📅 Appointment Management</h3>
-        <div class="card">
-            <div class="card-body">
-                <h5>Available Slots</h5>
-                <ul>
-                    {% for day, slot in slots.items() %}
-                        <li>{{ day }}: {{ slot }}</li>
-                    {% endfor %}
-                </ul>
-                <button class="btn btn-primary">Book Appointment</button>
-                <button class="btn btn-danger">Cancel Appointment</button>
-            </div>
-        </div>
+Medical history management
 
-        <!-- Notifications -->
-        <h3 class="section-title">🔔 Notifications & Alerts</h3>
-        <div class="card">
-            <div class="card-body">
-                <ul>
-                    {% for n in notifications %}
-                        <li>{{ n }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+Book, view, and cancel appointments
 
-    </div>
-</body>
-</html>
-"""
+Notifications via email/SMS
 
-# Routes
-@app.route('/')
-def home():
-    return render_template_string(template, 
-                                  admin=admin_dashboard, 
-                                  patients=patients, 
-                                  appointments=appointments,
-                                  slots=available_slots,
-                                  notifications=notifications)
+Doctor Module
 
-# Run the App
-if __name__ == '__main__':
-    app.run(debug=True)
+Daily schedule overview
+
+Access & update patient records
+
+Search for specific patients
+
+Real-time notifications
+
+Admin Module
+
+Dashboard with hospital analytics
+
+Role & permission management
+
+Performance reporting (PDF/Excel)
+
+System activity monitoring
+
+Security
+
+Role-based access control
+
+Encrypted sensitive data
+
+Real-time audit logs
+
+📊 Dashboard Mockups
+1️⃣ Admin Analytics Dashboard
+
+Visual Concept:
+
+Total Patients, Appointments, Revenue counters at the top
+
+Line chart: Daily appointments & revenue trends
+
+Filter panel: Date range, department, doctor
+
++-----------------------------------------------+
+| Total Patients: 325  | Total Appointments: 512 |
+| Total Revenue: $45,230                          |
++-----------------------------------------------+
+| [Line Chart: Appointments & Revenue Trend]    |
++-----------------------------------------------+
+| Filters: Date Range | Department | Doctor     |
++-----------------------------------------------+
+
+2️⃣ Patient Portal
+
+Visual Concept:
+
+Upcoming appointments list
+
+Medical history timeline
+
+Notifications panel
+
++-----------------------------------------------+
+| Upcoming Appointments:                        |
+| 1. Dr. Smith - 26 Oct 2025 - 10:00 AM        |
+| 2. Dr. Lee - 28 Oct 2025 - 02:00 PM          |
++-----------------------------------------------+
+| Medical History Timeline:                     |
+| - 01 Sep 2025: Blood Test                     |
+| - 15 Aug 2025: Consultation                   |
++-----------------------------------------------+
+| Notifications:                               |
+| - Appointment Reminder: 26 Oct 2025 10:00 AM |
++-----------------------------------------------+
+
+3️⃣ Doctor Dashboard
+
+Visual Concept:
+
+Daily appointments table
+
+Patient search bar
+
+Medical records quick access
+
++-----------------------------------------------+
+| Date: 26 Oct 2025                              |
++-----------------------------------------------+
+| Patient Name | Time    | Appointment Type     |
+| John Doe     | 10:00AM | Check-up            |
+| Mary Smith   | 11:00AM | Consultation        |
++-----------------------------------------------+
+| [Search Patient Records]                       |
+| [Access & Update Medical Records]             |
++-----------------------------------------------+
+
+4️⃣ Appointment Management
+
+Visual Concept:
+
+Available slots calendar
+
+Booking & cancellation interface
+
++------------------------+
+| Available Slots:       |
+| Mon 26 Oct: 09:00-12:00 |
+| Tue 27 Oct: 10:00-02:00 |
++------------------------+
+| Book Appointment | Cancel Appointment |
++------------------------+
+
+5️⃣ Notifications & Alerts
+
+Visual Concept:
+
+Real-time notifications for patients & doctors
+
+Email/SMS alerts
+
++----------------------------+
+| Notifications              |
+| - 26 Oct 2025 10:00 AM: John Doe booked an appointment |
+| - 28 Oct 2025 02:00 PM: Mary Smith cancelled an appointment |
++----------------------------+
+
+⚙️ How to Run the System
+# Clone repository
+git clone https://github.com/<yourusername>/hospital-management-system.git
+cd hospital-management-system
+
+# Set up virtual environment
+python3 -m venv venv
+source venv/bin/activate   # Mac/Linux
+venv\Scripts\activate      # Windows
+
+# Install dependencies
+pip install flask django pandas sqlalchemy jupyter notebook
+
+# Run the system (example for Flask)
+python app.py
+
+📂 Project Structure
+Hospital-Management-System/
+│
+├── app/                     # Main application
+│   ├── templates/           # HTML templates
+│   ├── static/              # CSS, JS, Images
+│   ├── models.py            # Database models
+│   ├── routes.py            # App routes
+│   └── app.py               # Main Flask/Django app
+│
+├── data/                    # Database storage
+│   └── patients.db
+│
+├── notebooks/               # Analytics notebooks
+│   └── patient_analysis.ipynb
+│
+├── tests/                   # Unit & integration tests
+│   └── test_app.py
+│
+├── README.md
+└── LICENSE
+
+🛠️ Tools & Technologies
+
+Backend: Python (Flask/Django), SQLAlchemy
+
+Frontend: HTML, CSS, JavaScript, Bootstrap
+
+Database: SQLite/PostgreSQL
+
+Analytics: Pandas, Jupyter Notebook, Matplotlib/Seaborn
+
+Version Control: GitHub
+
+m
